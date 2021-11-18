@@ -1,18 +1,13 @@
-import Button from '../../components/ui/button'
-import ErrorAlert from '../../components/events/error-alert'
 import EventSummary from '../../components/event-detail/event-summary'
 import EventLogistics from '../../components/event-detail/event-logistics'
 import EventContent from '../../components/event-detail/event-content'
-import { getEventById, getAllEvents } from '../../helpers/api-utils'
+import { getEventById, getFeaturedEvents } from '../../helpers/api-utils'
 
 export default function EventDetailPage({ event }) {
 	if (!event) {
 		return (
 			<div className='center'>
-				<ErrorAlert>
-					<p>Invalid Search</p>
-				</ErrorAlert>
-				<Button href='/events'>Show All Events</Button>
+				<p>loading...</p>
 			</div>
 		)
 	}
@@ -41,15 +36,16 @@ export async function getStaticProps(context) {
 		props: {
 			event,
 		},
+		revalidate: 30,
 	}
 }
 
 export async function getStaticPaths() {
-	const events = await getAllEvents()
+	const events = await getFeaturedEvents()
 	const paths = events.map((event) => ({ params: { eventId: event.id } }))
 
 	return {
 		paths,
-		fallback: false,
+		fallback: true,
 	}
 }

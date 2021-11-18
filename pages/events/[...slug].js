@@ -1,15 +1,36 @@
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { getFilteredEvents } from '../../dummy-data'
+import useSWR from 'swr'
 import Button from '../../components/ui/button'
 import EventList from '../../components/events/eventList'
 import ErrorAlert from '../../components/events/error-alert'
 import ResultsTitle from '../../components/events/results-title'
 
 export default function FilteredEventsPage() {
+	const [events, setEvents] = useState()
 	const router = useRouter()
 	const filterData = router.query.slug
 
-	if (!filterData) {
+	const { data, error } = useSWR(
+		'https://testing-271fe-default-rtdb.firebaseio.com/nextjs/events.json',
+		(...args) => fetch(...args).then((res) => res.json())
+	)
+
+	useEffect(() => {
+		if (data) {
+			const events = []
+
+			for (const key in data) {
+				events.push({
+					id: key,
+					...data[key],
+				})
+			}
+			setEvents(events)
+		}
+	}, [data])
+
+	if (!events) {
 		return <p className='center'>Loading...</p>
 	}
 
@@ -25,7 +46,8 @@ export default function FilteredEventsPage() {
 		year > 2030 ||
 		year < 2021 ||
 		month > 12 ||
-		month < 1
+		month < 1 ||
+		error
 	) {
 		return (
 			<div className='center'>
@@ -37,8 +59,12 @@ export default function FilteredEventsPage() {
 		)
 	}
 
-	const filteredEvents = getFilteredEvents({ year, month })
-	console.log('filteredEvents: ', filteredEvents)
+	let filteredEvents = events.filter((event) => {
+		const eventDate = new Date(event.date)
+		return (
+			eventDate.getFullYear() === year && eventDate.getMonth() === month - 1
+		)
+	})
 
 	if (!filteredEvents || filteredEvents.length === 0) {
 		return (

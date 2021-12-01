@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import Head from 'next/head'
 import { getAllEvents } from '../../helpers/api-utils'
 import EventList from '../../components/events/eventList'
 import EventsSearch from '../../components/events/eventsSearch'
@@ -12,6 +13,10 @@ export default function EventsPage({ events }) {
 
 	return (
 		<>
+			<Head>
+				<title>All Next Events</title>
+				<meta name='description' content='View all the great events nearby.' />
+			</Head>
 			<EventsSearch onSearch={onSearch} />
 			<EventList items={events} />
 		</>

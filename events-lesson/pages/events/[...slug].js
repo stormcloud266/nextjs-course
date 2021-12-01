@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Head from 'next/head'
 import useSWR from 'swr'
 import Button from '../../components/ui/button'
 import EventList from '../../components/events/eventList'
@@ -10,6 +11,12 @@ export default function FilteredEventsPage() {
 	const [events, setEvents] = useState()
 	const router = useRouter()
 	const filterData = router.query.slug
+	let headData = (
+		<Head>
+			<title>Search Events</title>
+			<meta name='description' content='Search all events.' />
+		</Head>
+	)
 
 	const { data, error } = useSWR(
 		'https://testing-271fe-default-rtdb.firebaseio.com/nextjs/events.json',
@@ -31,7 +38,12 @@ export default function FilteredEventsPage() {
 	}, [data])
 
 	if (!events) {
-		return <p className='center'>Loading...</p>
+		return (
+			<>
+				{headData}
+				<p className='center'>Loading...</p>
+			</>
+		)
 	}
 
 	const filteredYear = filterData[0]
@@ -39,6 +51,18 @@ export default function FilteredEventsPage() {
 
 	const year = +filteredYear
 	const month = +filteredMonth
+
+	headData = (
+		<Head>
+			<title>
+				Events for {month}/{year}
+			</title>
+			<meta
+				name='description'
+				content={`View all the great events nearby for ${month}/${year}.`}
+			/>
+		</Head>
+	)
 
 	if (
 		isNaN(year) ||
@@ -51,6 +75,8 @@ export default function FilteredEventsPage() {
 	) {
 		return (
 			<div className='center'>
+				{headData}
+
 				<ErrorAlert>
 					<p>Invalid Search</p>
 				</ErrorAlert>
@@ -69,6 +95,8 @@ export default function FilteredEventsPage() {
 	if (!filteredEvents || filteredEvents.length === 0) {
 		return (
 			<div className='center'>
+				{headData}
+
 				<ErrorAlert>
 					<p>No Events Found</p>
 				</ErrorAlert>
@@ -81,6 +109,8 @@ export default function FilteredEventsPage() {
 
 	return (
 		<>
+			{headData}
+
 			<ResultsTitle date={date} />
 			<EventList items={filteredEvents} />
 		</>

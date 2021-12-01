@@ -16,13 +16,7 @@ export default function EventItem({ title, image, date, location, id }) {
 
 	return (
 		<li className={styles.item}>
-			<Image
-				src={'/' + image}
-				alt={title}
-				layout='intrinsic'
-				width={400}
-				height={300}
-			/>
+			<Image src={'/' + image} alt={title} width={250} height={160} />
 			<div className={styles.content}>
 				<div className={styles.summary}>
 					<h2>{title}</h2>

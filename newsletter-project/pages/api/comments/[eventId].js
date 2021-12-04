@@ -1,5 +1,11 @@
-export default function handler(req, res) {
+import { MongoClient } from 'mongodb'
+
+export default async function handler(req, res) {
 	const eventId = req.query.eventId
+
+	const client = await MongoClient.connect(
+		`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.petvr.mongodb.net/events?retryWrites=true&w=majority`
+	)
 
 	if (req.method === 'POST') {
 		const { email, name, text } = req.body
@@ -16,23 +22,26 @@ export default function handler(req, res) {
 		}
 
 		const newComment = {
-			id: new Date().toISOString(),
 			email,
 			name,
 			text,
+			eventId,
 		}
+
+		const bd = client.db()
+		await bd.collection('comments').insertOne(newComment)
 
 		res.status(201).json({ message: 'success', comment: newComment })
 	} else if (req.method === 'GET') {
-		res.status(200).json({
-			comments: [
-				{
-					id: new Date().toISOString(),
-					name: 'tdawg',
-					email: 'oaisdu@kasjdh.com',
-					text: 'Lorem ipsum, dolor sit amet consectetur adipisicing elit. Consectetur!',
-				},
-			],
-		})
+		const bd = client.db()
+		const documents = await bd
+			.collection('comments')
+			.find({ eventId })
+			.sort({ _id: -1 })
+			.toArray()
+
+		res.status(200).json({ comments: documents })
 	}
+
+	client.close()
 }

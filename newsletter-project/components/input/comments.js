@@ -13,8 +13,15 @@ function Comments(props) {
 	useEffect(() => {
 		if (showComments) {
 			fetch(`/api/comments/${eventId}`)
-				.then((res) => res.json())
+				.then((res) => {
+					if (res.status >= 200 && res.status <= 299) {
+						return res.json()
+					} else {
+						throw Error('Error fetching messages.')
+					}
+				})
 				.then((data) => setComments(data.comments))
+				.catch((err) => setComments([]))
 		}
 	}, [showComments])
 

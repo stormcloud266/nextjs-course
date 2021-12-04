@@ -1,11 +1,19 @@
-import { MongoClient } from 'mongodb'
+import {
+	connectDatabase,
+	insertDocument,
+	getAllDocuments,
+} from '../../../helpers/db-utils.js'
 
 export default async function handler(req, res) {
 	const eventId = req.query.eventId
+	let client
 
-	const client = await MongoClient.connect(
-		`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.petvr.mongodb.net/events?retryWrites=true&w=majority`
-	)
+	try {
+		client = await connectDatabase()
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to connect to database.' })
+		return
+	}
 
 	if (req.method === 'POST') {
 		const { email, name, text } = req.body
@@ -18,6 +26,7 @@ export default async function handler(req, res) {
 			text.trim() === ''
 		) {
 			res.status(422).json({ message: 'Invalid input' })
+			client.close()
 			return
 		}
 
@@ -28,19 +37,24 @@ export default async function handler(req, res) {
 			eventId,
 		}
 
-		const bd = client.db()
-		await bd.collection('comments').insertOne(newComment)
-
-		res.status(201).json({ message: 'success', comment: newComment })
+		try {
+			await insertDocument(client, 'comments', newComment)
+			res.status(201).json({ message: 'success', comment: newComment })
+		} catch (error) {
+			res.status(500).json({ message: 'Failed to insert data.' })
+		}
 	} else if (req.method === 'GET') {
-		const bd = client.db()
-		const documents = await bd
-			.collection('comments')
-			.find({ eventId })
-			.sort({ _id: -1 })
-			.toArray()
-
-		res.status(200).json({ comments: documents })
+		try {
+			const documents = await getAllDocuments(
+				client,
+				'comments',
+				{ _id: -1 },
+				{ eventId }
+			)
+			res.status(200).json({ comments: documents })
+		} catch (error) {
+			res.status(500).json({ message: 'Failed to get data.' })
+		}
 	}
 
 	client.close()

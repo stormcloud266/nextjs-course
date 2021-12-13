@@ -24,7 +24,7 @@ export function getPostData(postIdentifier) {
 }
 
 export function getAllPosts() {
-	const postFiles = getPostFiles()
+	const postFiles = getPostsFiles()
 
 	const allPosts = postFiles.map((postFile) => getPostData(postFile))
 	const sortedPosts = allPosts.sort((postA, postB) =>
